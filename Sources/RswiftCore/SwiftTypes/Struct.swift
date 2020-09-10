@@ -62,7 +62,7 @@ struct Struct: UsedTypesProvider, SwiftCodeConverible {
     var varsString: String?
     var functionsString: String?
 
-    if self is ExternalOnlyStructGenerator == false {
+    if shouldSplit {
         varsString = properties
           .map { $0.swiftCode }
           .sorted()
@@ -98,7 +98,7 @@ struct Struct: UsedTypesProvider, SwiftCodeConverible {
   }
     
     var swiftCodeExtensions: [String] {
-        guard self is ExternalOnlyStructGenerator else { return [] }
+        guard shouldSplit else { return [] }
         
         let availablesString = availables.map { "@available(\($0))\n" }.joined(separator: "")
 
