@@ -9,6 +9,11 @@
 
 import Foundation
 
+private struct Constants {
+    static let maxPropertiesPerSplit = 300
+    static let maxFunctionsPerSplit = 70
+}
+
 struct Struct: UsedTypesProvider, SwiftCodeConverible {
   let availables: [String]
   let comments: [String]
@@ -21,6 +26,7 @@ struct Struct: UsedTypesProvider, SwiftCodeConverible {
   var structs: [Struct]
   var classes: [Class]
   let os: [String]
+  var shouldSplit: Bool = false
 
   var isEmpty: Bool {
     return properties.isEmpty
@@ -53,17 +59,22 @@ struct Struct: UsedTypesProvider, SwiftCodeConverible {
       .map { $0.description }
       .joined(separator: "\n")
 
-    let varsString = properties
-      .map { $0.swiftCode }
-      .sorted()
-      .map { $0.description }
-      .joined(separator: "\n")
+    var varsString: String?
+    var functionsString: String?
 
-    let functionsString = functions
-      .map { $0.swiftCode }
-      .sorted()
-      .map { $0.description }
-      .joined(separator: "\n\n")
+    if self is ExternalOnlyStructGenerator == false {
+        varsString = properties
+          .map { $0.swiftCode }
+          .sorted()
+          .map { $0.description }
+          .joined(separator: "\n")
+
+        functionsString = functions
+          .map { $0.swiftCode }
+          .sorted()
+          .map { $0.description }
+          .joined(separator: "\n\n")
+    }
     
     let structsString = structs
       .map { $0.swiftCode }
@@ -80,11 +91,41 @@ struct Struct: UsedTypesProvider, SwiftCodeConverible {
     // File private `init`, so that struct can't be initialized from the outside world
     let fileprivateInit = "fileprivate init() {}"
 
-    let bodyComponents = [typealiasString, varsString, functionsString, structsString, classesString, fileprivateInit].filter { $0 != "" }
+    let bodyComponents = [typealiasString, varsString ?? "", functionsString ?? "", structsString, classesString, fileprivateInit].filter { $0 != "" }
     let bodyString = bodyComponents.joined(separator: "\n\n").indent(with: "  ")
 
     return OSPrinter(code: "\(commentsString)\(availablesString)\(accessModifierString)struct \(type)\(implementsString) {\n\(bodyString)\n}", supportedOS: os).swiftCode
   }
+    
+    var swiftCodeExtensions: [String] {
+        guard self is ExternalOnlyStructGenerator else { return [] }
+        
+        let availablesString = availables.map { "@available(\($0))\n" }.joined(separator: "")
+
+        let propertiesSplits = properties
+            .chunked(into: Constants.maxPropertiesPerSplit)
+            .map({ chunk in
+                chunk.map({ $0.swiftCode })
+                .sorted()
+                .map({ $0.description })
+                .joined(separator: "\n")
+                .indent(with: "  ")
+            })
+        
+        let functionsSplits = functions
+            .chunked(into: Constants.maxFunctionsPerSplit)
+            .map({ chunk in
+                chunk.map({ $0.swiftCode })
+                .sorted()
+                .map({ $0.description })
+                .joined(separator: "\n\n")
+                .indent(with: "  ")
+            })
+        
+        return (propertiesSplits + functionsSplits).map({
+            OSPrinter(code: "\(availablesString)extension \(type) {\n\($0)\n}", supportedOS: os).swiftCode
+        })
+    }
 
   static var empty: Struct {
     return Struct(

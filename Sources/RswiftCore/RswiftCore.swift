@@ -98,15 +98,15 @@ public struct RswiftCore {
       }
 
       // Generate regular R file
-      let fileContents = generateRegularFileContents(resources: resources, generators: structGenerators)
-      writeIfChanged(contents: fileContents, toURL: callInformation.outputURL)
+      let filesContents = generateRegularFilesContents(resources: resources, generators: structGenerators)
+      writeIfChanged(contents: filesContents, toURL: callInformation.outputURL)
 
       // Generate UITest R file
       if let uiTestOutputURL = callInformation.uiTestOutputURL {
         let uiTestFileContents = generateUITestFileContents(resources: resources, generators: [
           AccessibilityIdentifierStructGenerator(nibs: resources.nibs, storyboards: resources.storyboards)
         ])
-        writeIfChanged(contents: uiTestFileContents, toURL: uiTestOutputURL)
+        writeIfChanged(contents: [uiTestFileContents], toURL: uiTestOutputURL)
       }
 
     } catch let error as ResourceParsingError {
@@ -123,7 +123,7 @@ public struct RswiftCore {
     }
   }
 
-  private func generateRegularFileContents(resources: Resources, generators: [StructGenerator]) -> String {
+  private func generateRegularFilesContents(resources: Resources, generators: [StructGenerator]) -> [String] {
     let aggregatedResult = AggregatedStructGenerator(subgenerators: generators)
       .generatedStructs(at: callInformation.accessLevel, prefix: "")
 
@@ -143,11 +143,32 @@ public struct RswiftCore {
       internalStruct
     ]
 
-    return codeConvertibles
-      .compactMap { $0?.swiftCode }
-      .joined(separator: "\n\n")
-      + "\n" // Newline at end of file
+    let mainFileContent = codeConvertibles.compactMap { $0?.swiftCode }.joined(separator: "\n\n") + "\n"
+    let extensionsStructs = getExtensionsStructs(mainStruct: externalStruct)
+    let extensionsStructsFilesContents = extensionsStructs.flatMap({
+        extensionsFilesContents(extensionStruct: $0)
+    })
+    return [mainFileContent] + extensionsStructsFilesContents
   }
+    
+    private func getExtensionsStructs(mainStruct: Struct) -> [Struct] {
+        guard !mainStruct.shouldSplit else { return [mainStruct] }
+        return mainStruct.structs.flatMap({ getExtensionsStructs(mainStruct: $0) })
+    }
+    
+    private func extensionsFilesContents(extensionStruct: Struct) -> [String] {
+        return extensionStruct.swiftCodeExtensions.map({
+            [
+                HeaderPrinter().swiftCode,
+                ImportPrinter(
+                  modules: callInformation.imports,
+                  extractFrom: [extensionStruct],
+                  exclude: [Module.custom(name: callInformation.productModuleName)]
+                ).swiftCode,
+                $0
+                ].joined(separator: "\n\n") + "\n"
+        })
+    }
 
   private func generateUITestFileContents(resources: Resources, generators: [StructGenerator]) -> String {
     let (externalStruct, _) =  AggregatedStructGenerator(subgenerators: generators)
@@ -177,12 +198,25 @@ private func loadPropertyList(name: String, url: URL, callInformation: CallInfor
   }
 }
 
-private func writeIfChanged(contents: String, toURL outputURL: URL) {
-  let currentFileContents = try? String(contentsOf: outputURL, encoding: .utf8)
+private func writeIfChanged(contents: [String], toURL outputURL: URL) {
+  /*let currentFileContents = try? String(contentsOf: outputURL, encoding: .utf8)
   guard currentFileContents != contents else { return }
   do {
     try contents.write(to: outputURL, atomically: true, encoding: .utf8)
   } catch {
     fail(error.localizedDescription)
-  }
+  }*/
+    guard let filename = outputURL.filename else { return }
+    let fileExtension = outputURL.pathExtension
+    do {
+        for content in contents.enumerated() {
+            let url = outputURL
+                .deletingLastPathComponent()
+                .appendingPathComponent("\(filename)+\(content.offset+1)")
+                .appendingPathExtension(fileExtension)
+            try content.element.write(to: url, atomically: true, encoding: .utf8)
+        }
+    } catch {
+        fail(error.localizedDescription)
+    }
 }

@@ -42,7 +42,8 @@ struct StringsStructGenerator: ExternalOnlyStructGenerator {
       functions: [],
       structs: structs,
       classes: [],
-      os: []
+      os: [],
+      shouldSplit: true
     )
   }
 
@@ -299,10 +300,10 @@ struct StringsStructGenerator: ExternalOnlyStructGenerator {
       body: """
         guard let preferredLanguages = preferredLanguages else {
           let format = \(values.swiftCode(bundle: "hostingBundle"))
-          return String(format: format, locale: applicationLocale, \(args))
+          return String(format: format, locale: R.applicationLocale, \(args))
         }
 
-        guard let (locale, bundle) = localeBundle(tableName: "\(values.tableName)", preferredLanguages: preferredLanguages) else {
+        guard let (locale, bundle) = R.localeBundle(tableName: "\(values.tableName)", preferredLanguages: preferredLanguages) else {
           return "\(values.key)"
         }
 
