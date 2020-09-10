@@ -42,8 +42,7 @@ struct StringsStructGenerator: ExternalOnlyStructGenerator {
       functions: [],
       structs: structs,
       classes: [],
-      os: [],
-      shouldSplit: true
+      os: []
     )
   }
 
@@ -65,7 +64,8 @@ struct StringsStructGenerator: ExternalOnlyStructGenerator {
       functions: params.map { stringFunction(values: $0, at: externalAccessLevel) },
       structs: [],
       classes: [],
-      os: []
+      os: [],
+      shouldSplit: true
     )
   }
 
