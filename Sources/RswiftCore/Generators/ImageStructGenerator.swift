@@ -69,7 +69,8 @@ struct ImageStructGenerator: ExternalOnlyStructGenerator {
       functions: groupedFunctions.uniques.map { imageFunction(for: $0, at: externalAccessLevel, prefix: qualifiedName) },
       structs: structs,
       classes: [],
-      os: []
+      os: [],
+      fullname: qualifiedName.description
     )
   }
 
@@ -145,7 +146,8 @@ private extension NamespacedAssetSubfolder {
       functions: groupedFunctions.uniques.map { imageFunction(for: $0, at: externalAccessLevel, prefix: qualifiedName) },
       structs: structs,
       classes: [],
-      os: []
+      os: [],
+      fullname: qualifiedName.description
     )
   }
 

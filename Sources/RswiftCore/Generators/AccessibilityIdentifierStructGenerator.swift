@@ -46,7 +46,8 @@ struct AccessibilityIdentifierStructGenerator: ExternalOnlyStructGenerator {
       functions: [],
       structs: structsForMergedContainers,
       classes: [],
-      os: []
+      os: [],
+      fullname: qualifiedName.description
     )
   }
 
@@ -71,7 +72,8 @@ struct AccessibilityIdentifierStructGenerator: ExternalOnlyStructGenerator {
       functions: [],
       structs: [],
       classes: [],
-      os: []
+      os: [],
+      fullname: identifier.description
     )
   }
 

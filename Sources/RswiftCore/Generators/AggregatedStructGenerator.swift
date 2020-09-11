@@ -43,7 +43,8 @@ class AggregatedStructGenerator: StructGenerator {
       functions: [],
       structs: collectedResult.externalStructs,
       classes: [],
-      os: []
+      os: [],
+      fullname: qualifiedName.description
     )
 
     let internalStruct = Struct(

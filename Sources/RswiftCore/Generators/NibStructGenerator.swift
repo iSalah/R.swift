@@ -120,7 +120,8 @@ struct NibStructGenerator: StructGenerator {
       functions: nibFunctions,
       structs: [],
       classes: [],
-      os: []
+      os: [],
+      fullname: qualifiedName.description
     )
 
     return (

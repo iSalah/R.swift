@@ -42,7 +42,8 @@ struct ReuseIdentifierStructGenerator: ExternalOnlyStructGenerator {
       functions: [],
       structs: [],
       classes: [],
-      os: []
+      os: [],
+      fullname: qualifiedName.description
     )
   }
 

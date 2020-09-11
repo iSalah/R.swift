@@ -85,7 +85,8 @@ struct SegueStructGenerator: ExternalOnlyStructGenerator {
       functions: [],
       structs: structs,
       classes: [],
-      os: ["iOS", "tvOS"]
+      os: ["iOS", "tvOS"],
+      fullname: qualifiedName.description
     )
   }
 
@@ -171,7 +172,8 @@ struct SegueStructGenerator: ExternalOnlyStructGenerator {
       functions: functions,
       structs: [],
       classes: [],
-      os: []
+      os: [],
+      fullname: sourceType.name.description
     )
   }
 }

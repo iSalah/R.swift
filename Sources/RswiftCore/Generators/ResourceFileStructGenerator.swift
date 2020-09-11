@@ -38,7 +38,8 @@ struct ResourceFileStructGenerator: ExternalOnlyStructGenerator {
       functions: firstLocales.flatMap { functionsFromResourceFiles(resourceFiles: $0.1, at: externalAccessLevel) },
       structs: [],
       classes: [],
-      os: []
+      os: [],
+      fullname: qualifiedName.description
     )
   }
 

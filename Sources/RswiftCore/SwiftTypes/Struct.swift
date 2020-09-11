@@ -10,8 +10,8 @@
 import Foundation
 
 private struct Constants {
-    static let maxPropertiesPerSplit = 300
-    static let maxFunctionsPerSplit = 70
+    static let maxPropertiesPerSplit = 500
+    static let maxFunctionsPerSplit = 100
 }
 
 struct Struct: UsedTypesProvider, SwiftCodeConverible {
@@ -26,8 +26,22 @@ struct Struct: UsedTypesProvider, SwiftCodeConverible {
   var structs: [Struct]
   var classes: [Class]
   let os: [String]
-  var shouldSplit: Bool = false
+  var fullname: String? = nil
 
+    var shouldSplit: Bool {
+        return shouldSplitProperties || shouldSplitFunctions
+    }
+    
+    var shouldSplitProperties: Bool {
+        guard fullname != nil else { return false }
+        return properties.count > Constants.maxPropertiesPerSplit
+    }
+    
+    var shouldSplitFunctions: Bool {
+        guard fullname != nil else { return false }
+        return functions.count > Constants.maxFunctionsPerSplit
+    }
+    
   var isEmpty: Bool {
     return properties.isEmpty
       && functions.isEmpty
@@ -62,13 +76,15 @@ struct Struct: UsedTypesProvider, SwiftCodeConverible {
     var varsString: String?
     var functionsString: String?
 
-    if shouldSplit {
+    if !shouldSplitProperties {
         varsString = properties
-          .map { $0.swiftCode }
-          .sorted()
-          .map { $0.description }
-          .joined(separator: "\n")
+            .map { $0.swiftCode }
+            .sorted()
+            .map { $0.description }
+            .joined(separator: "\n")
+    }
 
+    if !shouldSplitFunctions {
         functionsString = functions
           .map { $0.swiftCode }
           .sorted()
@@ -98,32 +114,38 @@ struct Struct: UsedTypesProvider, SwiftCodeConverible {
   }
     
     var swiftCodeExtensions: [String] {
-        guard shouldSplit else { return [] }
+        guard let fullname = fullname else { return [] }
+        guard shouldSplitProperties || shouldSplitFunctions else { return [] }
         
         let availablesString = availables.map { "@available(\($0))\n" }.joined(separator: "")
-
-        let propertiesSplits = properties
-            .chunked(into: Constants.maxPropertiesPerSplit)
-            .map({ chunk in
-                chunk.map({ $0.swiftCode })
-                .sorted()
-                .map({ $0.description })
-                .joined(separator: "\n")
-                .indent(with: "  ")
-            })
+        var extensionsCode: [String] = []
         
-        let functionsSplits = functions
-            .chunked(into: Constants.maxFunctionsPerSplit)
-            .map({ chunk in
-                chunk.map({ $0.swiftCode })
-                .sorted()
-                .map({ $0.description })
-                .joined(separator: "\n\n")
-                .indent(with: "  ")
-            })
+        if shouldSplitProperties {
+            extensionsCode += properties
+                .chunked(into: Constants.maxPropertiesPerSplit)
+                .map({ chunk in
+                    chunk.map({ $0.swiftCode })
+                    .sorted()
+                    .map({ $0.description })
+                    .joined(separator: "\n")
+                    .indent(with: "  ")
+                })
+        }
         
-        return (propertiesSplits + functionsSplits).map({
-            OSPrinter(code: "\(availablesString)extension \(type) {\n\($0)\n}", supportedOS: os).swiftCode
+        if shouldSplitFunctions {
+            extensionsCode += functions
+                .chunked(into: Constants.maxFunctionsPerSplit)
+                .map({ chunk in
+                    chunk.map({ $0.swiftCode })
+                    .sorted()
+                    .map({ $0.description })
+                    .joined(separator: "\n\n")
+                    .indent(with: "  ")
+                })
+        }
+        
+        return extensionsCode.map({
+            OSPrinter(code: "\(availablesString)extension \(fullname) {\n\($0)\n}", supportedOS: os).swiftCode
         })
     }
 

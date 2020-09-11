@@ -89,7 +89,8 @@ struct FontStructGenerator: ExternalOnlyStructGenerator {
       functions: functions,
       structs: [],
       classes: [],
-      os: []
+      os: [],
+      fullname: "R.font"
     )
   }
 }

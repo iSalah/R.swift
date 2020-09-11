@@ -49,7 +49,8 @@ struct PropertyListGenerator: ExternalOnlyStructGenerator {
       functions: [],
       structs: structsFromInfoPlist(contents: contents, path: [], at: externalAccessLevel),
       classes: [],
-      os: []
+      os: [],
+      fullname: qualifiedName.description
     )
   }
 

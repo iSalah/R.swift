@@ -14,14 +14,14 @@ extension Struct {
     let internalProperties = [
       Let(
         comments: [],
-        accessModifier: .filePrivate,
+        accessModifier: .internalLevel,
         isStatic: true,
         name: "hostingBundle",
         typeDefinition: .inferred(Type._Bundle),
         value: "Bundle(for: R.Class.self)"),
       Let(
         comments: [],
-        accessModifier: .filePrivate,
+        accessModifier: .internalLevel,
         isStatic: true,
         name: "applicationLocale",
         typeDefinition: .inferred(Type._Locale),
@@ -59,7 +59,7 @@ extension Struct {
       Function(
         availables: [],
         comments: ["Find first language and bundle for which the table exists"],
-        accessModifier: .filePrivate,
+        accessModifier: .internalLevel,
         isStatic: true,
         name: "localeBundle",
         generics: nil,

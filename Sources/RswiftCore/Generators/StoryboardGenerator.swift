@@ -67,7 +67,8 @@ struct StoryboardStructGenerator: StructGenerator {
       functions: storyboardTypes.map { $0.2 },
       structs: [],
       classes: [],
-      os: ["iOS", "tvOS"]
+      os: ["iOS", "tvOS"],
+      fullname: qualifiedName.description
     )
 
     let internalStruct = Struct(

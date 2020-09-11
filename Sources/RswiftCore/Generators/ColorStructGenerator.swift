@@ -60,7 +60,8 @@ struct ColorStructGenerator: ExternalOnlyStructGenerator {
       functions: groupedColors.uniques.map { colorFunction(for: $0, at: externalAccessLevel, prefix: qualifiedName) },
       structs: structs,
       classes: [],
-      os: []
+      os: [],
+      fullname: qualifiedName.description
     )
   }
 
@@ -136,7 +137,8 @@ private extension NamespacedAssetSubfolder {
       functions: groupedFunctions.uniques.map { colorFunction(for: $0, at: externalAccessLevel, prefix: qualifiedName) },
       structs: structs,
       classes: [],
-      os: []
+      os: [],
+      fullname: qualifiedName.description
     )
   }
 
